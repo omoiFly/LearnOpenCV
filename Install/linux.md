@@ -9,11 +9,13 @@
 *假设现在源码放在 ~/Downloads/opencv-3.2.0   
 其他模块放在 ~/Downloads/opencv_contrib 下 *
 
-* 在  ~/Downloads/opencv-3.2.0 下创建一个文件夹 build 存放编译成果
-        mkdir build
-        cd build
-* 用CMake生成一个makefile文件（可选:同时链接contrib模块）
-        cmake -D CMAKE_BUILD_TYPE=Release -D OPENCV_EXTRA_MODULES=~/Downloads/oopencv_contrib/modules -D CMAKE_INSTALL_PREFIX=/usr/local ..
+* 在  ~/Downloads/opencv-3.2.0 下创建一个文件夹 build 存放编译成果  
+
+            mkdir build  
+            cd build
+* 用CMake生成一个makefile文件（可选:同时链接contrib模块）   
+
+            cmake -D CMAKE_BUILD_TYPE=Release -D OPENCV_EXTRA_MODULES=~/Downloads/oopencv_contrib/modules -D CMAKE_INSTALL_PREFIX=/usr/local ..
 > 注意:此时有可能会卡在 ICV: Downloading ippicv_linux_20151201.tgz... 处，需要在此
 [点击下载](https://github.com/opencv/opencv_3rdparty/blob/ippicv/master_20151201/ippicv/ippicv_linux_20151201.tgz) ippicv_linux_20151201.tgz 文件
 覆盖 ~/Downloads/opencv-3.2.0/3rdparty/ippicv/downloads/linux-808b791a6eac9ed78d32a7666804320e/ 下同名文件即可 (如果卡在其它地方 在这个[opencv_3rdparty库](https://github.com/opencv/opencv_3rdparty)
