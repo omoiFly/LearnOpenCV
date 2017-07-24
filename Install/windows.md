@@ -14,13 +14,13 @@
 *假设现在源码放在 D:\opencv-3.2.0\ 其他模块放在 D:\opencv_contrib-3.2.0\ 下*
 
 * 打开CMake,选择源码位置，与在linux上安装类似,如图:  
-![初始](.\1初始图.PNG)
+![初始](./1初始图.PNG)
 
 
 * 第一次Configure:  
-![设置编译器](.\2第一次Configure.PNG)
-![开始](.\3第一次Configure开始.PNG)
-![完成](.\4第一次Configure完成.PNG)
+![设置编译器](./2第一次Configure.PNG)
+![开始](./3第一次Configure开始.PNG)
+![完成](./4第一次Configure完成.PNG)
 
 
 * 第二次Configure(添加opencv_contrib附加库)(Optional):  
