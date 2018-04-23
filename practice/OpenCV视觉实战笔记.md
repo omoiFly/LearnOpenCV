@@ -151,11 +151,18 @@ Mat EnhanceSaturation(Mat& temp)
 ```python
 def main():
     src = cv.imread("/home/lusx/Pictures/merge/street.jpg")
-    src = cv.resize(src, None, fx=0.25, fy=0.25)
+    if src.shape[0] > 3000:
+        src = cv.resize(src, None, fx=0.25, fy=0.25)
+    elif src.shape[0] > 1500:
+        src = cv.resize(src, None, fx=0.5, fy=0.5)
+    else:
+        pass
     mask = find_mask(src)
-    max_contour = find_maximum_contour(mask)
+    dst = clone(src, mask)
+    dst = enhance_saturation(dst)
+
     cv.imshow("src", src)
-    cv.imshow("mask", mask)
+    cv.imshow("dst", dst)
     cv.waitKey()
     cv.destroyAllWindows()
 ```
@@ -203,32 +210,40 @@ def clone(src, mask):
 
     dst = cv.seamlessClone(cloud, src, roi, center, cv.NORMAL_CLONE)
     return dst
-  
 ```
 
 ```python
 def enhance_saturation(img):
+    # Params
+    increment = 50.0 / 100.0
 
-    return img
-```
-
-```python
-def main():
-    src = cv.imread("/home/lusx/Pictures/merge/street.jpg")
-    if src.shape[0] > 3000:
-        src = cv.resize(src, None, fx=0.25, fy=0.25)
-    elif src.shape[0] > 1500:
-        src = cv.resize(src, None, fx=0.5, fy=0.5)
-    else:
-        pass
-    mask = find_mask(src)
-    dst = clone(src, mask)
-    dst = enhance_saturation(dst)
-
-    cv.imshow("src", src)
-    cv.imshow("dst", dst)
-    cv.waitKey()
-    cv.destroyAllWindows()
+    # Increase Brightness
+    tmp = cv.bilateralFilter(img, 5, 10.0, 2.0)
+    tmp = cv.cvtColor(tmp, cv.COLOR_BGR2YCrCb)
+    planes = cv.split(tmp)
+    planes[0] = cv.equalizeHist(planes[0])
+    tmp = cv.merge(planes)
+    tmp = cv.cvtColor(tmp, cv.COLOR_YCrCb2BGR)
+    # Do enhance
+    f_img = tmp.astype(np.float32).copy()
+    out_img = tmp.astype(np.float32).copy()
+    for r in range(f_img.shape[0]):
+        c = f_img[0][r]
+        min_value = min(c)
+        max_value = max(c)
+        delta = (max_value - min_value) / 255.0
+        L = 0.5 * (max_value + min_value) / 255.0
+        S = max(0.5 * delta / L, 0.5 * delta / (1 - L))
+        if increment > 0:
+            alpha = max(S, 1 - increment)
+            alpha = 1.0 / alpha - 1
+            out_img[0][r] = f_img[0][r] + ((f_img[0][r] - L * 255.0) * alpha)
+        else:
+            alpha = increment
+            out_img[0][r] = L * 255.0 + (f_img[0][r] - L * 255.0) * (1 + alpha)
+#        out_img /= 255.0
+    dst = out_img.astype(np.uint8)
+    return dst
 ```
 
 ##### 对项目的总结
@@ -262,19 +277,3 @@ def main():
 6. 图像饱和度的增强(使用了查表法进行)，原理在后面的思考中详述
 
 ##### 思考
-
-- 对于二阶泊松融合的理解
-
-  函数的梯度即函数的变化趋势。对图像融合来说，打个比方，如果要融合两个函数(图像)，可以记下要融合的图片的变化趋势(梯度)，让原图按照同样的趋势“生长”出要融合的部分，图像的衔接就会更加自然。
-
-  函数的一阶导是函数的变化趋势(斜率)，那么二阶导就是变化趋势的趋势，如果我们能够保证原图和新图的变化趋势的趋势(二阶导)差距达到最小，那么它们的趋势变化也会达到最小，这样函数就不会有突兀的改变。上面的这段描述最后在Poission Image Editing 这篇论文中最后变为解如下的函数：
-
-$$\mathop{\min}\limits_{f}\iint_Ω\left|\nabla f-{\bf v}\right|^2 with \left. f \right| _{\partialΩ}=\left.f^*\right|_{\partialΩ}$$
-
-其中f就是最后融合的图像，f*是原来的图像，v就是要融合的图像，通过一系列的迭代优化技术，最后获得融合的结果图像f。
-
-*在融合过程中，其实并没有将要融合的图片“糊”上去，而是通过计算散度(也就是上文提到的二阶导，只不过这里是偏导)，让原图的待融合部分按照上式生成的规则算出这部分的像素值，最后获得融合后的图片*
-
-- 图像饱和度的增强
-
-  可以达到动漫中的效果，通过一个映射表的映射关系将特定的RGB映射到另一个值，且效果较好
